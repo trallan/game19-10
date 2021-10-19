@@ -9,6 +9,14 @@ body {
     background-color: black;
 }
 
+.enemy-btn, .atk-btn {
+    font-size: 16px;
+    width: 5rem;
+    height: 1.5rem;
+    background-color: black;
+    color: rgb(69, 241, 69);
+}
+
 .stats-btn {
     font-size: 16px;
     width: 1.5rem;
@@ -31,6 +39,7 @@ button:hover {
 #container {
     width: 60%;
     margin: auto;
+    margin-bottom: 2rem;
     background-color: black;
 }
 
@@ -48,6 +57,9 @@ button:hover {
 #content-container {
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    border-bottom: 1px solid #999;
+    border-right: 1px solid #999;
 }
 
 #content1 {
@@ -60,8 +72,6 @@ button:hover {
 #content2 {
     display: flex;
     width: 80%;
-    border-right: 1px solid #999;
-    border-bottom: 1px solid #999;
     margin-left: 20%;
 }
 
@@ -84,24 +94,79 @@ ul, li, a {
     margin-top: 2rem;
 }
 
-#stats-container, #char-container, #enemys-container {
+#stats-container, #char-container, #enemys-container, #battle-container{
     display: flex;
-    height: 30rem;
+    height: 25rem;
     width: 20rem;
     margin: 5% 0 0 5%;
     border: 1px solid #999;
 }
 
-#stats, #character, #enemys {
+#stats, #character {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: white;
     line-height: 2.5;
     font-size: 18px;
     font-family: monospace;
     margin: 0 0 0 15%;
     color: rgb(69, 241, 69);
+}
+
+#battle-info-box {
+    display: flex;
+    justify-content: center;
+    height: 10rem;
+    width: 20rem;
+}
+
+#battle-atk-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    height: 5rem;
+}
+
+#battle-container {
+    flex-direction: column;
+}
+
+.progress-bar {
+    position: relative;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 5px;
+    height: 1.8rem;
+    width: 90%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: rgb(69, 241, 69);
+    transition: all 0.2s;
+    border-radius: 8px;
+}
+
+.progress-txt {
+    position: absolute;
+    top: 50%;
+    right: 45%;
+    transform: translateY(-50%);
+    color: white;
+}
+
+#battle-e, #battle-p, #enemys {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 2.5;
+    font-size: 18px;
+    font-family: monospace;
+    margin: 2rem;
 }
 
 #stats:hover {
