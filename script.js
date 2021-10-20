@@ -6,6 +6,9 @@ let battleP = document.getElementById('battle-p')
 let pBar = document.querySelector('.progress-bar')
 let progress = 0;
 let intervalId;
+let battleIntervalId;
+let selectedEnemy = "skeleton";
+let inBattle = false;
 
 let statsObject = {
     level: 1,
@@ -21,6 +24,23 @@ let charObject = {
     damage: 5,
     mana: 25,
     atkspeed: 1
+}
+
+class Enemy {
+    constructor(name, health, exp, attack, atkspeed){
+        this.name = name;
+        this.health = health;
+        this.exp = exp;
+        this.attack = attack
+        this.atkspeed = atkspeed
+    }
+}
+
+let enemyObj = {
+    skeleton: new Enemy('Skeleton', 100, 8, 12, 1),
+    ghoul: new Enemy('Ghoul', 150, 20, 20, 1),
+    troll: new Enemy('Troll', 200, 30, 15, 2),
+    spearman: new Enemy('Spearman', 350, 45, 30, 2)
 }
 
 let oldPoints = statsObject.points;
@@ -82,12 +102,25 @@ let loadCharacter = () => {
 let loadEnemyList = () => {
     enemys.innerHTML = `
         <div><p style="text-decoration: underline">Enemy list</p></div>
-        <div><button class="enemy-btn">Skeleton</button></div>
-        <div><button class="enemy-btn">Ghoul</button></div>
-        <div><button class="enemy-btn">Troll</button></div>
-        <div><button class="enemy-btn">Spearman</button></div>
+        <div><button class="enemy-btn" value="skeleton">Skeleton</button></div>
+        <div><button class="enemy-btn" value="ghoul">Ghoul</button></div>
+        <div><button class="enemy-btn" value="troll">Troll</button></div>
+        <div><button class="enemy-btn" value="spearman">Spearman</button></div>
     `
+//////////////////////////// CHOOSE ENEMY ////////////////////////////////////
+    let enemyBtn = document.querySelectorAll('.enemy-btn')
+    for(let i = 0; i < enemyBtn.length; i++){
+        enemyBtn[i].addEventListener('click', function(){
+            if(inBattle === true){
+                console.log("YOU ARE IN BATTLE ALREADY")
+                return
+            }
+            selectedEnemy = enemyBtn[i].value;
+            loadBattle()
+        });
+    }
 }
+
 /////////////////////////// BATTLE WINDOW ///////////////////////
 let loadBattle = () => {
     battleP.innerHTML = `
@@ -96,17 +129,19 @@ let loadBattle = () => {
         <div><p>${charObject.health + statsObject.stamina*5}</p></div>
     `
     battleE.innerHTML = `
-        <div><p>Enemy</p></div>
+        <div><p>${enemyObj[selectedEnemy].name}</p></div>
         <div><p>Health:</p></div>
-        <div><p>100</p></div>
+        <div><p>${enemyObj[selectedEnemy].health}</p></div>
     `
 }
-
+//////////////////////// ATTACK BTN //////////////////////////////// 
 let atkBtn = document.querySelector('.atk-btn');
 atkBtn.addEventListener('click', function(){
     atkBtn.style.display = "none";
     intervalId = setInterval(startLoading, 250)
+    battleIntervalId = setInterval(startBattle, 3000) // Attacks per second
     progress = 0;
+    inBattle = true;
 });
 //////////////////// PROGRESS BAR ////////////////////////////////
 let updateProgressBar = (progressBar, value) => {
@@ -114,14 +149,23 @@ let updateProgressBar = (progressBar, value) => {
     progressBar.querySelector('.progress-fill').style.width = `${value}%`;
     progressBar.querySelector('.progress-txt').textContent = `${value}%`;
 }
+//////////////////////// START LOADING BAR / ATTACK BUTTON//////////////////////
 let startLoading = () => {
-    if(progress >= 100){
+    if(progress >= 100 || charObject.health <= 0){
         clearInterval(intervalId);
+        clearInterval(battleIntervalId);
         atkBtn.style.display = "block";
+        inBattle = false;
         return
     }
     progress++;
     updateProgressBar(pBar, progress)
+}
+////////////////////// START BATTLE //////////////////////////
+let startBattle = () => {
+    enemyObj[selectedEnemy].health -= charObject.damage
+    charObject.health -= enemyObj[selectedEnemy].attack
+    loadBattle();
 }
 
 ////////////////////////// LEVEL UP ///////////////////////////////////
@@ -140,4 +184,3 @@ let loadScreen = () => {
 }
 
 loadScreen();
-
