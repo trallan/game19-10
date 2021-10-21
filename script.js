@@ -6,9 +6,11 @@ let battleP = document.getElementById('battle-p')
 let pBar = document.querySelector('.progress-bar')
 let progress = 0;
 let intervalId;
-let battleIntervalId;
+let enemyBattleIntervalId;
+let charBattleIntervalId;
 let selectedEnemy = "skeleton";
 let inBattle = false;
+let enemyMaxHealth
 
 let statsObject = {
     level: 1,
@@ -23,24 +25,26 @@ let charObject = {
     health: 100,
     damage: 5,
     mana: 25,
-    atkspeed: 1
+    atkspeed: 2,
+    exp: 0
 }
 
 class Enemy {
-    constructor(name, health, exp, attack, atkspeed){
+    constructor(name, health, exp, attack, atkspeed, armor){
         this.name = name;
         this.health = health;
         this.exp = exp;
-        this.attack = attack
-        this.atkspeed = atkspeed
+        this.attack = attack;
+        this.atkspeed = atkspeed;
+        this.armor = armor;
     }
 }
 
 let enemyObj = {
-    skeleton: new Enemy('Skeleton', 100, 8, 12, 1),
-    ghoul: new Enemy('Ghoul', 150, 20, 20, 1),
-    troll: new Enemy('Troll', 200, 30, 15, 2),
-    spearman: new Enemy('Spearman', 350, 45, 30, 2)
+    skeleton: new Enemy('Skeleton', 100, 8, 12, 5),
+    ghoul: new Enemy('Ghoul', 150, 15, 20, 5),
+    troll: new Enemy('Troll', 200, 23, 15, 4, 5),
+    spearman: new Enemy('Spearman', 350, 46, 30, 3, 10)
 }
 
 let oldPoints = statsObject.points;
@@ -61,16 +65,20 @@ let loadStats = () => {
     statsBtn[i].addEventListener('click', function(){
         if(statsObject.points > 0){
             if(i === 0){
-                statsObject.strength +=1
+                statsObject.strength += 1
+                charObject.damage += 2
             }
             if(i === 1){
                 statsObject.dexterity +=1
+                charObject.atkspeed -= 0.008
             }
             if(i === 2){
                 statsObject.stamina +=1
+                charObject.health += 5
             }
             if(i === 3){
                 statsObject.intelligence +=1
+                charObject.mana += 15
             }
             statsObject.points -= 1
         }
@@ -85,6 +93,11 @@ let loadStats = () => {
         statsObject.stamina = 0;
         statsObject.intelligence  = 0;
         statsObject.points = oldPoints;
+        charObject.health = 100;
+        charObject.damage = 5;
+        charObject.mana = 25;
+        charObject.atkspeed = 1;
+        loadCharacter()
         loadScreen()
     })
 }
@@ -92,10 +105,11 @@ let loadStats = () => {
 ////////////////////////////////// CHARACTER WINDOW //////////////////////////////////
 let loadCharacter = () => {
     character.innerHTML = `
-        <div><p>Health: ${charObject.health + statsObject.stamina*5}</p></div>
-        <div><p>Damage: ${charObject.damage + statsObject.strength*3}</p></div>
-        <div><p>Mana: ${charObject.mana + statsObject.intelligence*15}</p></div>
-        <div><p>Attack speed: ${charObject.atkspeed + statsObject.dexterity*0.2}</p></div>
+        <div><p>Health: ${charObject.health}</p></div>
+        <div><p>Damage: ${charObject.damage}</p></div>
+        <div><p>Mana: ${charObject.mana}</p></div>
+        <div><p>Attack speed: ${Math.round(charObject.atkspeed * 100) / 100}</p></div>
+        <div><p>Experience: ${charObject.exp}</p></div>
     `
 }
 //////////////////////////////////// ENEMY LIST WINDOW //////////////////////////////
@@ -126,7 +140,7 @@ let loadBattle = () => {
     battleP.innerHTML = `
         <div><p>Player</p></div>
         <div><p>Health:</p></div>
-        <div><p>${charObject.health + statsObject.stamina*5}</p></div>
+        <div><p>${charObject.health}</p></div>
     `
     battleE.innerHTML = `
         <div><p>${enemyObj[selectedEnemy].name}</p></div>
@@ -137,9 +151,11 @@ let loadBattle = () => {
 //////////////////////// ATTACK BTN //////////////////////////////// 
 let atkBtn = document.querySelector('.atk-btn');
 atkBtn.addEventListener('click', function(){
+    enemyMaxHealth = enemyObj[selectedEnemy].health
     atkBtn.style.display = "none";
     intervalId = setInterval(startLoading, 250)
-    battleIntervalId = setInterval(startBattle, 3000) // Attacks per second
+    enemyBattleIntervalId = setInterval(enemyAttack, enemyObj[selectedEnemy].atkspeed * 1000) // Attacks per second
+    charBattleIntervalId = setInterval(charAttack, charObject.atkspeed * 1000) // Attacks per second
     progress = 0;
     inBattle = true;
 });
@@ -151,9 +167,22 @@ let updateProgressBar = (progressBar, value) => {
 }
 //////////////////////// START LOADING BAR / ATTACK BUTTON//////////////////////
 let startLoading = () => {
-    if(progress >= 100 || charObject.health <= 0){
+    if(progress >= 100 || charObject.health <= 0 || enemyObj[selectedEnemy].health <= 0){
+        if(charObject.health < 0){
+            charObject.health = 0;
+            loadBattle()
+        }
+        if(enemyObj[selectedEnemy].health < 0){
+            enemyObj[selectedEnemy].health = 0;
+            charObject.exp += enemyObj[selectedEnemy].exp;
+            loadCharacter()
+            loadBattle()
+        }
+        resetBattle();
+        loadBattle();
         clearInterval(intervalId);
-        clearInterval(battleIntervalId);
+        clearInterval(enemyBattleIntervalId);
+        clearInterval(charBattleIntervalId);
         atkBtn.style.display = "block";
         inBattle = false;
         return
@@ -161,11 +190,15 @@ let startLoading = () => {
     progress++;
     updateProgressBar(pBar, progress)
 }
-////////////////////// START BATTLE //////////////////////////
-let startBattle = () => {
-    enemyObj[selectedEnemy].health -= charObject.damage
-    charObject.health -= enemyObj[selectedEnemy].attack
+////////////////////// START BATTLE ENEMY //////////////////////////
+let enemyAttack = () => {
+    charObject.health -= Math.floor(Math.random() * enemyObj[selectedEnemy].attack)
     loadBattle();
+}
+////////////////////// START BATTLE PLAYER //////////////////////////
+let charAttack = () => {
+    enemyObj[selectedEnemy].health -=  Math.floor(Math.random() * charObject.damage);
+    loadBattle()
 }
 
 ////////////////////////// LEVEL UP ///////////////////////////////////
@@ -174,6 +207,10 @@ let levelUp = () => {
     statsObject.points += 5;
     oldPoints += 5;
     loadStats();
+}
+
+let resetBattle = () => {
+    enemyObj[selectedEnemy].health = enemyMaxHealth;
 }
 
 let loadScreen = () => {
