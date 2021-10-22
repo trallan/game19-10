@@ -6,11 +6,16 @@ let battleP = document.getElementById('battle-p')
 let pBar = document.querySelector('.progress-bar')
 let progress = 0;
 let intervalId;
+let regIntervalId;
 let enemyBattleIntervalId;
 let charBattleIntervalId;
 let selectedEnemy = "skeleton";
 let inBattle = false;
-let enemyMaxHealth
+let enemyMaxHealth;
+let charMaxHealth = 100;
+let expUp = 200;
+let expStage = 1;
+let regHp = false;
 
 let statsObject = {
     level: 1,
@@ -25,7 +30,7 @@ let charObject = {
     health: 100,
     damage: 5,
     mana: 25,
-    atkspeed: 2,
+    atkspeed: 1.5,
     exp: 0
 }
 
@@ -41,10 +46,10 @@ class Enemy {
 }
 
 let enemyObj = {
-    skeleton: new Enemy('Skeleton', 100, 8, 12, 5),
-    ghoul: new Enemy('Ghoul', 150, 15, 20, 5),
-    troll: new Enemy('Troll', 200, 23, 15, 4, 5),
-    spearman: new Enemy('Spearman', 350, 46, 30, 3, 10)
+    skeleton: new Enemy('Skeleton', 100, 16, 12, 5),
+    ghoul: new Enemy('Ghoul', 150, 40, 20, 5),
+    troll: new Enemy('Troll', 200, 68, 30, 4, 5),
+    spearman: new Enemy('Spearman', 350, 92, 48, 3, 10)
 }
 
 let oldPoints = statsObject.points;
@@ -63,6 +68,9 @@ let loadStats = () => {
     let statsBtn = document.querySelectorAll('.stats-btn');
     for(let i = 0; i < statsBtn.length; i++){
     statsBtn[i].addEventListener('click', function(){
+        if(inBattle === true){
+            return
+        }
         if(statsObject.points > 0){
             if(i === 0){
                 statsObject.strength += 1
@@ -75,6 +83,7 @@ let loadStats = () => {
             if(i === 2){
                 statsObject.stamina +=1
                 charObject.health += 5
+                charMaxHealth += 5
             }
             if(i === 3){
                 statsObject.intelligence +=1
@@ -87,29 +96,34 @@ let loadStats = () => {
     )};
     //////////////////// RESET STATS //////////////////////
     let resetStats = document.querySelector('.reset-btn');
-    resetStats.addEventListener('click', function(){
-        statsObject.strength = 0;
-        statsObject.dexterity = 0;
-        statsObject.stamina = 0;
-        statsObject.intelligence  = 0;
-        statsObject.points = oldPoints;
-        charObject.health = 100;
-        charObject.damage = 5;
-        charObject.mana = 25;
-        charObject.atkspeed = 1;
-        loadCharacter()
-        loadScreen()
-    })
+        resetStats.addEventListener('click', function(){
+            if(inBattle === true || charObject.health < charMaxHealth){
+                return
+            }
+            statsObject.strength = 0;
+            statsObject.dexterity = 0;
+            statsObject.stamina = 0;
+            statsObject.intelligence  = 0;
+            statsObject.points = oldPoints;
+            charObject.health = 100;
+            charObject.damage = 5;
+            charObject.mana = 25;
+            charObject.atkspeed = 1.5;
+            charMaxHealth = 100;
+            loadCharacter()
+            loadScreen()
+        })
 }
 
 ////////////////////////////////// CHARACTER WINDOW //////////////////////////////////
 let loadCharacter = () => {
     character.innerHTML = `
-        <div><p>Health: ${charObject.health}</p></div>
+        <div><p>Health: ${charMaxHealth}</p></div>
         <div><p>Damage: ${charObject.damage}</p></div>
         <div><p>Mana: ${charObject.mana}</p></div>
         <div><p>Attack speed: ${Math.round(charObject.atkspeed * 100) / 100}</p></div>
         <div><p>Experience: ${charObject.exp}</p></div>
+        <div><p>Exp to next level: ${expUp}</p></div>
     `
 }
 //////////////////////////////////// ENEMY LIST WINDOW //////////////////////////////
@@ -151,6 +165,10 @@ let loadBattle = () => {
 //////////////////////// ATTACK BTN //////////////////////////////// 
 let atkBtn = document.querySelector('.atk-btn');
 atkBtn.addEventListener('click', function(){
+    if(regHp === true){
+        return
+    }
+    clearInterval(regIntervalId)
     enemyMaxHealth = enemyObj[selectedEnemy].health
     atkBtn.style.display = "none";
     intervalId = setInterval(startLoading, 250)
@@ -165,16 +183,18 @@ let updateProgressBar = (progressBar, value) => {
     progressBar.querySelector('.progress-fill').style.width = `${value}%`;
     progressBar.querySelector('.progress-txt').textContent = `${value}%`;
 }
-//////////////////////// START LOADING BAR / ATTACK BUTTON//////////////////////
+//////////////////////// START LOADING BAR / CHECK ENEMY & PLAYER DEAD //////////////////////
 let startLoading = () => {
     if(progress >= 100 || charObject.health <= 0 || enemyObj[selectedEnemy].health <= 0){
         if(charObject.health < 0){
             charObject.health = 0;
+            charObject.exp -= enemyObj[selectedEnemy].exp;
             loadBattle()
         }
         if(enemyObj[selectedEnemy].health < 0){
             enemyObj[selectedEnemy].health = 0;
             charObject.exp += enemyObj[selectedEnemy].exp;
+            expIncrease()
             loadCharacter()
             loadBattle()
         }
@@ -208,9 +228,44 @@ let levelUp = () => {
     oldPoints += 5;
     loadStats();
 }
-
+//////////////////////////// INCREASE EXP / EXP STAGE /////////////////////////
+let expIncrease = () => {
+    if(charObject.exp >= expUp){
+        levelUp()
+        expUp += 200 * expStage;
+        expStage += 0.5;
+    }
+}
+/////////////////////// BATTLE RESETS ///////////////////////////
 let resetBattle = () => {
     enemyObj[selectedEnemy].health = enemyMaxHealth;
+}
+///////////////////////// REGENERATE BUTTON //////////////
+let regBtn = document.querySelector('.reg-btn');
+regBtn.addEventListener('click', function(){
+    if(inBattle === false){
+        regBtn.style.display = "none";
+        regHp = true;
+    }
+    if(inBattle === false){
+        regIntervalId = setInterval(regenerateHealth, 2000);
+    }else {
+        return
+    }
+});
+/////////////////////// REG HP FUNC ////////////////////////
+let regenerateHealth = () => {
+    if(charObject.health < charMaxHealth){
+        charObject.health += 2;
+        loadBattle()
+    }
+    if(charObject.health >= charMaxHealth ){
+        regHp = false;
+        regBtn.style.display = "block"
+        clearInterval(regIntervalId)
+        charObject.health = charMaxHealth
+        loadBattle()
+    }
 }
 
 let loadScreen = () => {
@@ -219,5 +274,7 @@ let loadScreen = () => {
     loadCharacter()
     loadEnemyList()
 }
+
+
 
 loadScreen();
