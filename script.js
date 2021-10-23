@@ -4,6 +4,7 @@ let enemys = document.getElementById('enemys')
 let battleE = document.getElementById('battle-e')
 let battleP = document.getElementById('battle-p')
 let pBar = document.querySelector('.progress-bar')
+let battleLog = document.querySelector('#battle-log')
 let progress = 0;
 let intervalId;
 let regIntervalId;
@@ -16,6 +17,9 @@ let charMaxHealth = 100;
 let expUp = 200;
 let expStage = 1;
 let regHp = false;
+let charAttackLog;
+let enemyAttackLog;
+let countLog = 0;
 
 let statsObject = {
     level: 1,
@@ -162,9 +166,30 @@ let loadBattle = () => {
         <div><p>${enemyObj[selectedEnemy].health}</p></div>
     `
 }
+
+/////////////////////////// BATTLE LOG ////////////////////////////////
+
+let charLoadBattleLog = () => {
+    countLog++;
+    
+    battleLog.innerHTML += `
+        <div><p>Player hit ${enemyObj[selectedEnemy].name} for ${charAttackLog} damage.</p></div>
+    `
+}
+
+let enemyLoadBattleLog = () => {
+    countLog++;
+    
+    battleLog.innerHTML += `
+        <div><p style="color: red;">Enemy hit you for ${enemyAttackLog} damage.</p></div>
+    `
+}
+
 //////////////////////// ATTACK BTN //////////////////////////////// 
 let atkBtn = document.querySelector('.atk-btn');
 atkBtn.addEventListener('click', function(){
+    battleLog.innerHTML = ``;
+    countLog = 0;
     if(regHp === true){
         return
     }
@@ -212,13 +237,17 @@ let startLoading = () => {
 }
 ////////////////////// START BATTLE ENEMY //////////////////////////
 let enemyAttack = () => {
-    charObject.health -= Math.floor(Math.random() * enemyObj[selectedEnemy].attack)
+    enemyAttackLog = Math.floor(Math.random() * enemyObj[selectedEnemy].attack);
+    charObject.health -= enemyAttackLog
+    enemyLoadBattleLog();
     loadBattle();
 }
 ////////////////////// START BATTLE PLAYER //////////////////////////
 let charAttack = () => {
-    enemyObj[selectedEnemy].health -=  Math.floor(Math.random() * charObject.damage);
-    loadBattle()
+    charAttackLog = Math.floor(Math.random() * charObject.damage)
+    enemyObj[selectedEnemy].health -= charAttackLog;
+    charLoadBattleLog();
+    loadBattle();
 }
 
 ////////////////////////// LEVEL UP ///////////////////////////////////

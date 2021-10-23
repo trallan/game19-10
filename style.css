@@ -37,8 +37,7 @@ button:hover {
 }
 
 #container {
-    width: 60%;
-    margin: auto;
+    display: flex;
     margin-bottom: 2rem;
     background-color: black;
 }
@@ -50,39 +49,66 @@ button:hover {
     font-size: 34px;
     font-family: Georgia, 'Times New Roman', Times, serif;
     height: 10rem;
-    border-bottom: 1px solid #999;
     color: rgb(69, 241, 69);
 }
 
 #content-container {
+    border: 1px solid #999;
     display: flex;
-    flex-direction: column;
-    height: 100vh;
-    border-bottom: 1px solid #999;
-    border-right: 1px solid #999;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
 }
 
 #content1 {
     display: flex;
-    width: 80%;
-    margin-left: 20%;
+}
+
+#char-itemslot-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#item-slot-header {
+    margin-top: 10%;
+    text-decoration: underline;
+}
+
+#item-slot {
+    display: flex;
+    flex-direction: column;
+    margin-top: 5%;
+    line-height: 2;
+}
+
+.item-info {
+    display: none;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+#item-slot1, #item-slot2, #item-slot3, #item-slot4, #item-slot5 {
+    margin-top: 15px;
+    cursor: pointer;
+} 
+
+#item-slot1:hover + .item-info, #item-slot2:hover + .item-info, #item-slot3:hover + .item-info, #item-slot4:hover + .item-info, #item-slot5:hover + .item-info {
+    display: block;
+    position: absolute;
 }
 
 #content2 {
     display: flex;
-    width: 80%;
-    margin-left: 20%;
 }
 
 
-#left-nav {
+#left-nav, #right-nav {
     display: flex;
     justify-content: center;
-    position: absolute;
     width: 12%;
     height: 100vh;
-    border-left:1px solid #999;
-    border-right:1px solid #999;
+    border-top: 1px solid #999;
     border-bottom: 1px solid #999;
 }
 
@@ -94,12 +120,36 @@ ul, li, a {
     margin-top: 2rem;
 }
 
-#stats-container, #char-container, #enemys-container, #battle-container{
+p {
+    font-family: monospace;
+    font-size: 18px;
+}
+
+#stats-container, #char-container, #enemys-container, #battle-container, #char-itemslot-container, #battleLog-container{
     display: flex;
     height: 25rem;
     width: 20rem;
-    margin: 5% 0 0 5%;
+    margin: 5px;
     border: 1px solid #999;
+}
+
+#battleLog-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: auto;
+}
+
+
+
+#battle-log {
+    width: 85%;
+    height: 85%;
+    margin-top: 1rem;
+}
+
+#battle-log p {
+    font-size: 14px;
 }
 
 #stats, #character {

@@ -8,10 +8,10 @@
     <title>DGame</title>
 </head>
 <body>
+    <div id="header">
+        <h1>The Game</h1>
+    </div>
     <div id="container">
-        <div id="header">
-            <h1>The Game</h1>
-        </div>
         <div id="left-nav">
             <ul>
                 <li><a href="#">Home</a></li>
@@ -27,6 +27,21 @@
                 </div>
                 <div id="char-container">
                     <div id="character"></div>
+                </div>
+                <div id="char-itemslot-container">
+                    <div id="item-slot-header"><p>Item slots</p></div>
+                    <div id="item-slot">
+                        <div id="item-slot1"><p>Head: Demon helmet</p></div>
+                        <div class="item-info">Health: +20</div>
+                        <div id="item-slot2"><p>Body: Demon armor</p></div>
+                        <div class="item-info">Health: +20</div>
+                        <div id="item-slot3"><p>Feet: Demon boots</p></div>
+                        <div class="item-info">Health: +20</div>
+                        <div id="item-slot4"><p>Weapon: Demon Sword</p></div>
+                        <div class="item-info">Damage: +20</div>
+                        <div id="item-slot5"><p>Shield: Demon Shield</p></div>
+                        <div class="item-info">Health: +20</div>
+                    </div>
                 </div>
             </div>
             <div id="content2">
@@ -47,7 +62,19 @@
                         <div><button class="reg-btn">Regenerate</button></div>
                     </div>
                 </div>
+                <div id="battleLog-container">
+                    <div><p style="padding-top: 5px; text-decoration: underline;">Battle log</p></div>
+                    <div id="battle-log"></div>
+                </div>
             </div>
+        </div>
+        <div id="right-nav">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Stats</a></li>
+                <li><a href="#">Items</a></li>
+                <li><a href="#">Shop</a></li>
+            </ul>
         </div>
     </div>
     <script src="script.js"></script>
