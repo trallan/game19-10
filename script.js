@@ -5,6 +5,8 @@ let battleE = document.getElementById('battle-e')
 let battleP = document.getElementById('battle-p')
 let pBar = document.querySelector('.progress-bar')
 let battleLog = document.querySelector('#battle-log')
+let takeBtn;
+let sellBtn;
 let progress = 0;
 let intervalId;
 let regIntervalId;
@@ -17,9 +19,15 @@ let charMaxHealth = 100;
 let expUp = 200;
 let expStage = 1;
 let regHp = false;
+let regHpRate = 2;
 let charAttackLog;
 let enemyAttackLog;
 let countLog = 0;
+let coinDrop;
+let gold = 0;
+let silver = 0;
+let copper = 0;
+let weight = 0;
 
 let statsObject = {
     level: 1,
@@ -32,29 +40,150 @@ let statsObject = {
 
 let charObject = {
     health: 100,
-    damage: 5,
+    damage: 10,
     mana: 25,
     atkspeed: 1.5,
     exp: 0
 }
 
+
+
 class Enemy {
-    constructor(name, health, exp, attack, atkspeed, armor){
+    constructor(name, health, exp, attack, atkspeed, armor, coinType, coinVal, itemGrade){
         this.name = name;
         this.health = health;
         this.exp = exp;
         this.attack = attack;
         this.atkspeed = atkspeed;
         this.armor = armor;
+        this.coinType = coinType;
+        this.coinVal = coinVal;
+        this.itemGrade = itemGrade;
     }
 }
 
 let enemyObj = {
-    skeleton: new Enemy('Skeleton', 100, 16, 12, 5),
-    ghoul: new Enemy('Ghoul', 150, 40, 20, 5),
-    troll: new Enemy('Troll', 200, 68, 30, 4, 5),
-    spearman: new Enemy('Spearman', 350, 92, 48, 3, 10)
+    snake: new Enemy('Snake', 50, 7, 5, 5, 0, 'copper', 5, 0),
+    skeleton: new Enemy('Skeleton', 100, 16, 12, 5, 0, 'copper', 15, 1),
+    ghoul: new Enemy('Ghoul', 150, 40, 20, 5, 0, 'copper', 45, 1),
+    troll: new Enemy('Troll', 200, 68, 30, 4, 5, 'copper', 68, 1),
+    spearman: new Enemy('Spearman', 350, 92, 48, 3, 10, 'copper', 98, 1)
 }
+
+class newItem {
+    constructor(name, damage, health, weight, value, itemSlot){
+        this.name = name;
+        this.damage = damage;
+        this.health = health;
+        this.weight = weight;
+        this.value = value;
+        this.itemSlot = itemSlot;
+    }
+}
+
+let items = {
+    woodenSword: new newItem('Wooden Sword', 10, 10, 20, 80, 3),
+    woodenShield: new newItem('Wooden Shield', 0, 15, 15, 60, 4),
+    leatherHelmet: new newItem('Leather Helmet', 0, 5, 5, 50, 0),
+    leatherArmor: new newItem('Leather Armor', 0, 5, 5, 50, 1),
+    leatherBoots: new newItem('Leather Boots', 0, 5, 5, 50, 2)
+}
+
+let itemGrade1 = {
+    0: items.leatherHelmet,
+    1: items.leatherArmor,
+    2: items.leatherBoots,
+    3: items.woodenSword,
+    4: items.woodenShield
+}
+
+////////////////////////// INVENTORY /////////////////////////////
+let inventory = [];
+let loot = [];
+let inventoryList = document.querySelector('#inventory');
+let lootList = document.querySelector('#loot');
+
+//////////////////////////////// LOAD INVENTORY //////////////////////////////////////
+let loadInventory = () => {
+    let inventoryFooter = document.querySelector('#inventory-footer')
+    inventoryFooter.innerHTML = `
+    <div id="money">
+        <div><p>Gold: ${gold}</p></div>
+        <div><p>Silver: ${silver}</p></div>
+        <div><p>Copper: ${copper}</p></div>
+    </div>
+    <div id="weight"><p>Weight: ${weight}kg</p></div>
+    `
+}
+
+let checkInventory = () => {
+    inventoryList.innerHTML = ``
+    for(let i = 0; i < inventory.length; i++){
+        inventoryList.innerHTML += `
+        <div><p>${inventory[i].name}</p></div>
+    `
+    }
+}
+
+//////////////////////////// COIN DROP ///////////////////////
+let dropCoin = (type, val) => {
+    coinDrop = Math.floor(Math.random() * val)
+    if(type === 'copper'){
+        copper += coinDrop
+        if(copper >= 100){
+            silver += 1
+            copper = 0;
+        }
+    }
+    if (type === 'silver'){
+        silver += coinDrop
+        if(silver >= 100){
+            gold += 1
+            silver = 0;
+        }
+    }
+    if (type === 'gold'){
+        gold += coinDrop
+    }
+    loadInventory();
+}
+///////////////////////////////// ITEMS THAT DROP WHEN ENEMY DIE ////////////////////////////////////
+let dropItem = () => {
+    dropCoin(enemyObj[selectedEnemy].coinType, enemyObj[selectedEnemy].coinVal)
+    if(Math.floor(Math.random() * 3) === 0){
+        loot.push(itemGrade1[Math.floor(Math.random() * 4)]);
+    }
+    lootList.innerHTML += `
+        <div><p>You looted ${coinDrop} ${enemyObj[selectedEnemy].coinType}.</p></div>
+    `
+        for(let i = 0; i < loot.length; i++){
+            lootList.innerHTML += `
+            <div><p>You looted a ${loot[i].name}. <button id="take-btn">Take</button> <button id="sell-btn">Sell</button></p></div>
+        `
+    }
+    takeBtn = document.querySelector('#take-btn');
+    sellBtn = document.querySelector('#sell-btn');
+    /////////////////////////////// TAKE AND SELL ITEMS //////////////////////////////////
+    if(takeBtn != null){
+        takeBtn.addEventListener('click', function(){
+            console.log('You picked up an item')
+            inventory.push(loot[0])
+            loot = [];
+            takeBtn.style.display = "none";
+            sellBtn.style.display = "none";
+            checkInventory();
+            loadInventory();
+        })
+        sellBtn.addEventListener('click', function(){
+            console.log('You sold an item')
+            takeBtn.style.display = "none";
+            sellBtn.style.display = "none";
+            copper += loot[0].value
+            loadInventory();
+        })
+    }
+}
+
 
 let oldPoints = statsObject.points;
 //////////////////////////////// STATS WINDOW //////////////////////////////////////////
@@ -69,6 +198,7 @@ let loadStats = () => {
     <div class="stats-val"><p>Intelligence: ${statsObject.intelligence} <button class="stats-btn">+</button></p></div>
     <div><button class="reset-btn">Reset stats</button></div>
     `
+    /////////////////////////// ADD STATS BUTTON//////////////////////////
     let statsBtn = document.querySelectorAll('.stats-btn');
     for(let i = 0; i < statsBtn.length; i++){
     statsBtn[i].addEventListener('click', function(){
@@ -78,10 +208,13 @@ let loadStats = () => {
         if(statsObject.points > 0){
             if(i === 0){
                 statsObject.strength += 1
-                charObject.damage += 2
+                charObject.damage += 1
             }
             if(i === 1){
-                statsObject.dexterity +=1
+                if(charObject.atkspeed <= 1){
+                    return
+                }
+                statsObject.dexterity += 1
                 charObject.atkspeed -= 0.008
             }
             if(i === 2){
@@ -91,7 +224,8 @@ let loadStats = () => {
             }
             if(i === 3){
                 statsObject.intelligence +=1
-                charObject.mana += 15
+                charObject.mana += 2
+                regHpRate += 0.2
             }
             statsObject.points -= 1
         }
@@ -134,6 +268,7 @@ let loadCharacter = () => {
 let loadEnemyList = () => {
     enemys.innerHTML = `
         <div><p style="text-decoration: underline">Enemy list</p></div>
+        <div><button class="enemy-btn" value="snake">Snake</button></div>
         <div><button class="enemy-btn" value="skeleton">Skeleton</button></div>
         <div><button class="enemy-btn" value="ghoul">Ghoul</button></div>
         <div><button class="enemy-btn" value="troll">Troll</button></div>
@@ -144,7 +279,6 @@ let loadEnemyList = () => {
     for(let i = 0; i < enemyBtn.length; i++){
         enemyBtn[i].addEventListener('click', function(){
             if(inBattle === true){
-                console.log("YOU ARE IN BATTLE ALREADY")
                 return
             }
             selectedEnemy = enemyBtn[i].value;
@@ -189,6 +323,8 @@ let enemyLoadBattleLog = () => {
 let atkBtn = document.querySelector('.atk-btn');
 atkBtn.addEventListener('click', function(){
     battleLog.innerHTML = ``;
+    lootList.innerHTML = ``;
+    loot = [];
     countLog = 0;
     if(regHp === true){
         return
@@ -216,12 +352,16 @@ let startLoading = () => {
             charObject.exp -= enemyObj[selectedEnemy].exp;
             loadBattle()
         }
+        //////////////////// ENEMY DEAD ///////////////////////
         if(enemyObj[selectedEnemy].health < 0){
             enemyObj[selectedEnemy].health = 0;
             charObject.exp += enemyObj[selectedEnemy].exp;
-            expIncrease()
-            loadCharacter()
-            loadBattle()
+            loadInventory();
+            dropItem();
+            expIncrease();
+            loadCharacter();
+            loadBattle();
+            checkInventory();
         }
         resetBattle();
         loadBattle();
@@ -255,6 +395,12 @@ let levelUp = () => {
     statsObject.level += 1;
     statsObject.points += 5;
     oldPoints += 5;
+    charObject.damage += 5;
+    charMaxHealth += 5;
+    charObject.health += 5
+    charObject.mana += 5
+    loadBattle();
+    loadCharacter();
     loadStats();
 }
 //////////////////////////// INCREASE EXP / EXP STAGE /////////////////////////
@@ -285,7 +431,7 @@ regBtn.addEventListener('click', function(){
 /////////////////////// REG HP FUNC ////////////////////////
 let regenerateHealth = () => {
     if(charObject.health < charMaxHealth){
-        charObject.health += 2;
+        charObject.health += regHpRate;
         loadBattle()
     }
     if(charObject.health >= charMaxHealth ){
@@ -302,6 +448,7 @@ let loadScreen = () => {
     loadStats()
     loadCharacter()
     loadEnemyList()
+    loadInventory()
 }
 
 

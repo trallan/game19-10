@@ -32,6 +32,10 @@ body {
     padding: 3px;
 }
 
+button {
+    background-color: black;
+}
+
 button:hover {
     cursor: pointer;
 }
@@ -70,8 +74,12 @@ button:hover {
     align-items: center;
 }
 
-#item-slot-header {
-    margin-top: 10%;
+#item-slot-header, #loot-header, #inventory-header, #battleLog-header {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding-top: 2%;
+    padding-bottom: 2%;
     text-decoration: underline;
 }
 
@@ -96,6 +104,32 @@ button:hover {
 #item-slot1:hover + .item-info, #item-slot2:hover + .item-info, #item-slot3:hover + .item-info, #item-slot4:hover + .item-info, #item-slot5:hover + .item-info {
     display: block;
     position: absolute;
+}
+
+#inventory-container, #loot-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#inventory, #loot {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    height: 85%;
+    padding: 3%;
+}
+
+#inventory-footer {
+    padding: 0 4% 2% 4%;
+}
+
+#money {
+    display: flex;
+    justify-content: space-between;
+}
+
+#money p, #weight p, #loot p, #inventory p {
+    font-size: 14px;
 }
 
 #content2 {
@@ -125,7 +159,7 @@ p {
     font-size: 18px;
 }
 
-#stats-container, #char-container, #enemys-container, #battle-container, #char-itemslot-container, #battleLog-container{
+#stats-container, #char-container, #enemys-container, #battle-container, #char-itemslot-container, #battleLog-container, #inventory-container, #loot-container{
     display: flex;
     height: 25rem;
     width: 20rem;
